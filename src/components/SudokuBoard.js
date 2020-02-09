@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import initBoard from '../sudoku/init';
 import produce from 'immer';
 
-function ReactBoard() {
+function SudokuBoard(props) {
     const [board, setBoard] = useState(initBoard());
+    const [model, toggleModel] = useState(false);
     const originalBoard = board;
     var size = 60;
     var boardSize = 9;
+    const showModel = (e) => toggleModel(!e);
+
     return (
         <div style={{
             display: "grid",
@@ -19,7 +22,7 @@ function ReactBoard() {
                 onClick={() => {
                     const newBoard = produce(board, boardCopy => {
                         if (originalBoard[i][j] === 0) {
-                            boardCopy[i][j] = 1
+                            showModel();
                         }
                     })
                     setBoard(newBoard)
@@ -41,4 +44,4 @@ function ReactBoard() {
     );
 }
 
-export default ReactBoard;
+export default SudokuBoard;
