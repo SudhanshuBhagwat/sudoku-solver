@@ -1,47 +1,93 @@
-import React, { useState } from 'react';
-import initBoard from '../sudoku/init';
+import React, { useState, useEffect } from 'react';
 import produce from 'immer';
+import fetch from 'node-fetch';
 
-function SudokuBoard(props) {
-    const [board, setBoard] = useState(initBoard());
+
+function SudokuBoard({ difficulty }) {
+    var baseURL = `http://www.cs.utep.edu/cheon/ws/sudoku/new/?size=9&levels=${difficulty}`;
+    const [board, setBoard] = useState([]);
     const [model, toggleModel] = useState(false);
     const originalBoard = board;
     var size = 60;
     var boardSize = 9;
     const showModel = (e) => toggleModel(!e);
 
-    return (
-        <div style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${9}, ${size}px)`,
-            padding: "0.6em",
-            border: "2px solid #888888",
-            borderRadius: "2em",
-        }}>
-            {board.map((row, i) => row.map((col, j) => <div
-                onClick={() => {
-                    const newBoard = produce(board, boardCopy => {
-                        if (originalBoard[i][j] === 0) {
-                            showModel();
+    useEffect(() => {
+        async function fetchBoard() {
+            var response = await fetch(baseURL)
+            var json = await response.json();
+
+            var board = [];
+            let squares = json.squares;
+            let found = false;
+            for (let i = 0; i < boardSize; i++) {
+                let row = [];
+                for (let j = 0; j < boardSize; j++) {
+                    squares.forEach(obj => {
+                        if (obj.x === i && obj.y === j) {
+                            row.push(obj.value);
+                            found = true;
                         }
-                    })
-                    setBoard(newBoard)
-                }}
-                key={`${i}-${j}`} style={{
-                    width: size,
-                    height: size,
-                    borderRight: (((j + 1) % 3 === 0) && ((j + 1) !== boardSize)) ? "solid 2px #888888" : undefined,
-                    borderBottom: (((i + 1) % 3 === 0) && ((i + 1) !== boardSize)) ? "solid 2px #888888" : undefined,
-                    backgroundColor: undefined,
+                    });
+                    if (!found) {
+                        row.push(0);
+                    }
+                    found = false;
+                }
+                board.push(row);
+            }
+            setBoard(board);
+        }
+        fetchBoard();
+    }, []);
+
+    return (
+        <div>
+            {board.length !== 0 ?
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${9}, ${size}px)`,
+                    padding: "0.6em",
+                    border: "2px solid #888888",
+                    borderRadius: "2em",
+                }}>
+                    {board.map((row, i) => row.map((col, j) => <div
+                        onClick={() => {
+                            const newBoard = produce(board, boardCopy => {
+                                if (originalBoard[i][j] === 0) {
+                                    showModel();
+                                    console.log(model);
+                                }
+                            })
+                            setBoard(newBoard);
+                        }}
+                        key={`${i}-${j}`} style={{
+                            width: size,
+                            height: size,
+                            borderRight: (((j + 1) % 3 === 0) && ((j + 1) !== boardSize)) ? "solid 2px #888888" : undefined,
+                            borderBottom: (((i + 1) % 3 === 0) && ((i + 1) !== boardSize)) ? "solid 2px #888888" : undefined,
+                            backgroundColor: undefined,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            userSelect: "none",
+                            fontSize: 24,
+                            fontWeight: "bold"
+                        }}>{board[i][j]}</div>))}
+                </div>
+                : <div style={{
                     display: "flex",
+                    height: 60*9,
+                    width: 60*9,
+                    // gridTemplateColumns: `repeat(${9}, ${size}px)`,
+                    padding: "0.6em",
                     justifyContent: "center",
-                    alignItems: "center",
-                    userSelect: "none",
-                    fontSize: 24,
-                    fontWeight: "bold"
-                }}>{board[i][j]}</div>))}
+                    alignItems: "center"
+                }} > Loading... </div>}
         </div>
     );
+
 }
+
 
 export default SudokuBoard;

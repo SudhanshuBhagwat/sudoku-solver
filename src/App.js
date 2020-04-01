@@ -10,7 +10,7 @@ function App() {
   const getdifficulty = useCallback((n) => {
     setDifficulty(n);
   }, [difficulty, setDifficulty]);
-  
+
   return (
     <div>
       <StartScreen setDiff={getdifficulty} diff={difficulty} />
@@ -25,8 +25,8 @@ function App() {
         position: "absolute",
         overflow: "hidden",
       }}>
-        <h1>Sudoku Solver</h1>
-        <div style={{
+        {difficulty !== undefined ? <h1>Sudoku Solver</h1> : <div></div>}
+        {difficulty === undefined ? <div></div> : <div style={{
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
@@ -39,6 +39,7 @@ function App() {
           <SudokuBoard difficulty={difficulty} />
           <ActionButtons />
         </div>
+        }
       </div>
     </div>
   );
